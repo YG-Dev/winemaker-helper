@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   View,
   Text,
@@ -9,15 +9,14 @@ import {
   Modal,
   TextInput
 } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useFocusEffect, useRouter } from 'expo-router'
-import { Batch } from '@/constants/types'
-import { BATCHES_KEY } from '@/constants/storage-keys'
+import { useRouter } from 'expo-router'
 import { createBatch } from '@/utils/batch-helpers'
+import useBatches from '@/hooks/useBatches'
+import { Batch } from '@/constants/types'
 
 export default function BatchesView() {
   const router = useRouter()
-  const [batches, setBatches] = useState<Batch[]>([])
+  const { batches, setBatches, getBatchById } = useBatches()
   const [isModalVisible, setModalVisible] = useState(false)
   const [batchName, setBatchName] = useState('')
   const [batchQuantity, setBatchQuantity] = useState('')
@@ -32,40 +31,13 @@ export default function BatchesView() {
 
     const newBatch = createBatch(batchName.trim(), parseFloat(batchQuantity))
 
-    setBatches([...batches, newBatch])
+    setBatches([...(batches as Batch[]), newBatch])
     setBatchName('')
     setBatchQuantity('')
     toggleModal()
   }
 
-  const loadBatches = async () => {
-    try {
-      const storedBatches = await AsyncStorage.getItem(BATCHES_KEY)
-      if (storedBatches) {
-        setBatches(JSON.parse(storedBatches))
-      }
-    } catch (error) {
-      console.error('Failed to load on batches screen:', error)
-    }
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      loadBatches()
-    }, [])
-  )
-
-  useEffect(() => {
-    const saveBatches = async () => {
-      try {
-        await AsyncStorage.setItem(BATCHES_KEY, JSON.stringify(batches))
-      } catch (error) {
-        console.error('Failed to save batches on batches screen:', error)
-      }
-    }
-
-    saveBatches()
-  }, [batches])
+  getBatchById('')
 
   return (
     <View style={styles.container}>

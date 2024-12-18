@@ -1,5 +1,4 @@
-import { Batch, BatchStage } from '@/constants/types'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { BatchStage } from '@/constants/types'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState, useEffect } from 'react'
 import {
@@ -11,41 +10,30 @@ import {
   Button,
   Modal,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  ActivityIndicator
 } from 'react-native'
-import { BATCHES_KEY } from '@/constants/storage-keys'
+import useBatches from '@/hooks/useBatches'
 
 export default function BatchDetailsView() {
   const { id } = useLocalSearchParams()
-  const [batch, setBatch] = useState<Batch | null>(null)
+  const { batches, getBatchById, updateBatch, deleteBatch, isLoading } =
+    useBatches()
+
+  const [batch, setBatch] = useState(() => getBatchById(id as string))
   const [isModalVisible, setModalVisible] = useState(false)
   const [stageDescription, setStageDescription] = useState('')
   const [stageDate, setStageDate] = useState('')
 
   useEffect(() => {
-    const loadBatch = async () => {
-      try {
-        const storedBatches = await AsyncStorage.getItem(BATCHES_KEY)
-        if (storedBatches) {
-          const parsedBatches: Batch[] = JSON.parse(storedBatches)
-          const foundBatch = parsedBatches.find((b) => b.id === id)
-          if (foundBatch) {
-            setBatch(foundBatch)
-          } else {
-            Alert.alert('Error', 'Batch not found.')
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load batch:', error)
-      }
+    if (batches && !batch) {
+      setBatch(getBatchById(id as string))
     }
-
-    loadBatch()
-  }, [id])
+  }, [batches])
 
   const toggleModal = () => setModalVisible(!isModalVisible)
 
-  const handleAddStage = async () => {
+  const handleAddStage = () => {
     if (!stageDescription.trim() || !stageDate.trim()) {
       Alert.alert('Validation Error', 'Please fill out both fields.')
       return
@@ -58,82 +46,34 @@ export default function BatchDetailsView() {
     }
 
     if (batch) {
-      const updatedBatch = {
-        ...batch,
-        stages: [...batch.stages, newStage]
-      }
-
-      try {
-        const storedBatches = await AsyncStorage.getItem(BATCHES_KEY)
-        if (storedBatches) {
-          const parsedBatches: Batch[] = JSON.parse(storedBatches)
-          const batchIndex = parsedBatches.findIndex((b) => b.id === id)
-          if (batchIndex !== -1) {
-            parsedBatches[batchIndex] = updatedBatch
-            await AsyncStorage.setItem(
-              BATCHES_KEY,
-              JSON.stringify(parsedBatches)
-            )
-            setBatch(updatedBatch)
-            toggleModal()
-            setStageDescription('')
-            setStageDate('')
-          }
-        }
-      } catch (error) {
-        console.error('Failed to save stage:', error)
-        Alert.alert('Error', 'Failed to save the new stage.')
-      }
+      const updatedBatch = { ...batch, stages: [...batch.stages, newStage] }
+      updateBatch(updatedBatch)
+      setBatch(updatedBatch)
+      toggleModal()
+      setStageDescription('')
+      setStageDate('')
     }
   }
 
-  const handleRemoveBatch = async () => {
-    try {
-      const storedBatches = await AsyncStorage.getItem(BATCHES_KEY)
-      if (storedBatches) {
-        const parsedBatches: Batch[] = JSON.parse(storedBatches)
-        const updatedBatches = parsedBatches.filter((b) => b.id !== id)
-        await AsyncStorage.setItem(BATCHES_KEY, JSON.stringify(updatedBatches))
-        Alert.alert('Batch Deleted', 'The batch has been deleted.')
-        router.push('/batches')
-      }
-    } catch (error) {
-      console.error('Failed to delete batch:', error)
-      Alert.alert('Error', 'Failed to delete the batch.')
-    }
-  }
-
-  const handleRemoveStage = async (stageId: number) => {
+  const handleRemoveStage = (stageId: number) => {
     if (batch) {
       const updatedStages = batch.stages.filter((stage) => stage.id !== stageId)
       const updatedBatch = { ...batch, stages: updatedStages }
-
-      try {
-        const storedBatches = await AsyncStorage.getItem(BATCHES_KEY)
-        if (storedBatches) {
-          const parsedBatches: Batch[] = JSON.parse(storedBatches)
-          const batchIndex = parsedBatches.findIndex((b) => b.id === id)
-          if (batchIndex !== -1) {
-            parsedBatches[batchIndex] = updatedBatch
-            await AsyncStorage.setItem(
-              BATCHES_KEY,
-              JSON.stringify(parsedBatches)
-            )
-            setBatch(updatedBatch)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to remove stage:', error)
-        Alert.alert('Error', 'Failed to remove the stage.')
-      }
+      updateBatch(updatedBatch)
+      setBatch(updatedBatch)
     }
   }
 
-  if (!batch) {
+  const handleRemoveBatch = () => {
+    deleteBatch(id as string)
+    Alert.alert('Batch Deleted', 'The batch has been deleted.')
+    router.push('/batches')
+  }
+
+  if (isLoading || !batch) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Batch Details</Text>
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     )
   }
@@ -142,9 +82,7 @@ export default function BatchDetailsView() {
     <View style={styles.container}>
       <Text style={styles.title}>{batch.name}</Text>
       <Text style={styles.detail}>Quantity: {batch.quantity} L</Text>
-      <Text style={styles.detail}>
-        Created At: {new Date(batch.createdAt).toLocaleDateString()}
-      </Text>
+      <Text style={styles.detail}>Created At: {batch.createdAt}</Text>
       <Text style={styles.detail}>
         Status: {batch.isFinished ? 'Finished' : 'In Progress'}
       </Text>
@@ -154,7 +92,7 @@ export default function BatchDetailsView() {
         color="#ff5c5c"
       />
 
-      {/* Display Stages */}
+      {/* Display stages in a list */}
       <Text style={styles.subTitle}>Stages:</Text>
       {batch.stages.length > 0 ? (
         <FlatList
@@ -163,9 +101,7 @@ export default function BatchDetailsView() {
           renderItem={({ item }) => (
             <View style={styles.stageItem}>
               <Text style={styles.stageDescription}>{item.description}</Text>
-              <Text style={styles.stageDate}>
-                Date: {new Date(item.date).toLocaleDateString()}
-              </Text>
+              <Text style={styles.stageDate}>Date: {item.date}</Text>
               <TouchableOpacity
                 style={styles.removeStageButton}
                 onPress={() => handleRemoveStage(item.id)}
@@ -179,10 +115,10 @@ export default function BatchDetailsView() {
         <Text>No stages added yet.</Text>
       )}
 
-      {/* Add Stage Button */}
+      {/* add stage */}
       <Button title="Add Stage" onPress={toggleModal} />
 
-      {/* Modal for Adding a Stage */}
+      {/* adding stage button */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
