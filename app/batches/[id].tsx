@@ -1,4 +1,4 @@
-import { BatchStage } from '@/constants/types'
+import { Batch, BatchStage } from '@/constants/types'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState, useEffect } from 'react'
 import { View, FlatList, Modal, StyleSheet, Alert } from 'react-native'
@@ -13,11 +13,11 @@ import useBatches from '@/hooks/useBatches'
 import { MD3Theme } from 'react-native-paper/lib/typescript/types'
 
 export default function BatchDetailsView() {
-  const { id } = useLocalSearchParams()
+  const { id }: { id: string } = useLocalSearchParams()
   const { batches, getBatchById, updateBatch, deleteBatch, isLoading } =
     useBatches()
 
-  const [batch, setBatch] = useState(() => getBatchById(id as string))
+  const [batch, setBatch] = useState<Batch | null>()
   const [isModalVisible, setModalVisible] = useState(false)
   const [stageDescription, setStageDescription] = useState('')
   const [stageDate, setStageDate] = useState('')
@@ -26,10 +26,10 @@ export default function BatchDetailsView() {
   const styles = getStyles(theme)
 
   useEffect(() => {
-    if (batches && !batch) {
-      setBatch(getBatchById(id as string))
+    if (batches) {
+      setBatch(getBatchById(id))
     }
-  }, [batches])
+  }, [batches, id])
 
   const toggleModal = () => setModalVisible(!isModalVisible)
 
@@ -65,7 +65,7 @@ export default function BatchDetailsView() {
   }
 
   const handleRemoveBatch = () => {
-    deleteBatch(id as string)
+    deleteBatch(id)
     Alert.alert('Batch Deleted', 'The batch has been deleted.')
     router.push('/batches')
   }
