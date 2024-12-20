@@ -1,18 +1,19 @@
 import { useState } from 'react'
-import {
-  View,
-  Text,
-  Button,
-  FlatList,
-  StyleSheet,
-  Pressable,
-  Modal,
-  TextInput
-} from 'react-native'
+import { FlatList, StyleSheet, Modal, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { createBatch } from '@/utils/batch-helpers'
 import useBatches from '@/hooks/useBatches'
 import { Batch } from '@/constants/types'
+import {
+  Button,
+  Card,
+  Text,
+  TextInput,
+  FAB,
+  Provider as PaperProvider,
+  useTheme,
+  MD3Theme
+} from 'react-native-paper'
 
 export default function BatchesView() {
   const router = useRouter()
@@ -20,6 +21,8 @@ export default function BatchesView() {
   const [isModalVisible, setModalVisible] = useState(false)
   const [batchName, setBatchName] = useState('')
   const [batchQuantity, setBatchQuantity] = useState('')
+  const theme = useTheme()
+  const styles = getStyles(theme)
 
   const toggleModal = () => setModalVisible(!isModalVisible)
 
@@ -40,102 +43,139 @@ export default function BatchesView() {
   getBatchById('')
 
   return (
-    <View style={styles.container}>
-      <Button title="Add Batch" onPress={toggleModal} />
-      <FlatList
-        data={batches}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Pressable onPress={() => router.push(`/batches/${item.id}`)}>
-            <View style={styles.item}>
-              <Text style={styles.itemText}>{item.name}</Text>
-              <Text style={styles.itemSubText}>
-                Quantity: {item.quantity} L
+    <PaperProvider theme={theme}>
+      <View style={styles.container}>
+        <FlatList
+          data={batches}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Card
+              style={styles.card}
+              onPress={() => router.push(`/batches/${item.id}`)}
+            >
+              <Card.Title
+                title={item.name}
+                subtitle={`Quantity: ${item.quantity} L`}
+              />
+              <Card.Content>
+                <Text variant="bodySmall" style={styles.dateText}>
+                  Added: {item.createdAt}
+                </Text>
+              </Card.Content>
+            </Card>
+          )}
+          ListEmptyComponent={
+            <Text variant="bodyMedium" style={styles.emptyText}>
+              No batches added yet. Tap the "+" button to add a new batch.
+            </Text>
+          }
+        />
+        <FAB
+          icon="plus"
+          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+          color={theme.colors.onPrimary}
+          onPress={toggleModal}
+        />
+
+        <Modal visible={isModalVisible} animationType="slide" transparent>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text variant="headlineSmall" style={styles.modalTitle}>
+                Add New Batch
               </Text>
-              <Text>Added: {item.createdAt}</Text>
-            </View>
-          </Pressable>
-        )}
-      />
-      <Modal visible={isModalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add New Batch</Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Batch Name"
-              value={batchName}
-              onChangeText={setBatchName}
-            />
+              <TextInput
+                mode="outlined"
+                label="Batch Name"
+                value={batchName}
+                onChangeText={setBatchName}
+                style={styles.input}
+              />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Batch Quantity (L)"
-              value={batchQuantity}
-              onChangeText={setBatchQuantity}
-              keyboardType="numeric"
-            />
+              <TextInput
+                mode="outlined"
+                label="Batch Quantity (L)"
+                value={batchQuantity}
+                onChangeText={setBatchQuantity}
+                keyboardType="numeric"
+                style={styles.input}
+              />
 
-            <View style={styles.buttonContainer}>
-              <Button title="Cancel" onPress={toggleModal} color="#ff5c5c" />
-              <Button title="Add Batch" onPress={handleAddBatch} />
+              <View style={styles.buttonContainer}>
+                <Button
+                  mode="text"
+                  onPress={toggleModal}
+                  textColor={theme.colors.error}
+                >
+                  Cancel
+                </Button>
+                <Button mode="contained" onPress={handleAddBatch}>
+                  Add Batch
+                </Button>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </PaperProvider>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16
-  },
-  item: {
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc'
-  },
-  itemText: {
-    fontSize: 18,
-    fontWeight: 'bold'
-  },
-  itemSubText: {
-    fontSize: 14,
-    color: '#666'
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)'
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center'
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 8,
-    marginBottom: 16
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 16
-  }
-})
+const getStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+      paddingHorizontal: 16
+    },
+    card: {
+      marginVertical: 8,
+      backgroundColor: theme.colors.surface,
+      elevation: 2,
+      borderRadius: theme.roundness,
+      padding: 16
+    },
+    dateText: {
+      marginTop: 8,
+      color: theme.colors.onSurfaceVariant || theme.colors.onSurface
+    },
+    emptyText: {
+      textAlign: 'center',
+      marginTop: 16,
+      color: theme.colors.onBackground
+    },
+    fab: {
+      position: 'absolute',
+      bottom: 16,
+      right: 16,
+      backgroundColor: theme.colors.secondary
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      backgroundColor: theme.colors.backdrop
+    },
+    modalContent: {
+      margin: 16,
+      padding: 16,
+      borderRadius: theme.roundness,
+      backgroundColor: theme.colors.surface,
+      elevation: 3
+    },
+    modalTitle: {
+      marginBottom: 16,
+      textAlign: 'center',
+      color: theme.colors.onSurface,
+      fontSize: 18,
+      fontWeight: 'bold'
+    },
+    input: {
+      marginBottom: 16,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.roundness
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between'
+    }
+  })

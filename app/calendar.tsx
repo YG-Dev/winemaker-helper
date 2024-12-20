@@ -1,10 +1,11 @@
 import { BATCHES_KEY } from '@/constants/storage-keys'
 import { Batch, BatchStage } from '@/constants/types'
 import { useCallback, useEffect, useState } from 'react'
-import { Text, View, StyleSheet, FlatList, Button } from 'react-native'
+import { View, StyleSheet, FlatList } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { router, useFocusEffect } from 'expo-router'
 import { Calendar } from 'react-native-calendars'
+import { MD3Theme, useTheme, Text, Button } from 'react-native-paper'
 
 type CalendarStage = BatchStage & {
   batchName: string
@@ -15,6 +16,9 @@ export default function CalendarView() {
   const [batches, setBatches] = useState<Batch[]>([])
   const [selectedDate, setSelectedDate] = useState('')
   const [stagesOnDate, setStagesOnDate] = useState<CalendarStage[]>([])
+
+  const theme = useTheme()
+  const styles = getStyles(theme)
 
   const loadBatches = async () => {
     try {
@@ -53,19 +57,21 @@ export default function CalendarView() {
   return (
     <View style={styles.container}>
       <Calendar
-        onDayPress={(day: any) => setSelectedDate(day.dateString)}
+        onDayPress={(day: { dateString: string }) =>
+          setSelectedDate(day.dateString)
+        }
         markedDates={{
           [selectedDate]: {
             selected: true,
             marked: true,
-            selectedColor: '#00adf5'
+            selectedColor: theme.colors.primary
           },
           ...batches.reduce(
             (acc, batch) => {
               batch.stages.forEach((stage) => {
                 acc[stage.date] = {
                   marked: true,
-                  dotColor: 'red'
+                  dotColor: theme.colors.secondary
                 }
               })
               return acc
@@ -73,13 +79,23 @@ export default function CalendarView() {
             {} as Record<string, any>
           )
         }}
+        theme={{
+          arrowColor: theme.colors.secondary,
+          calendarBackground: theme.colors.background,
+          textSectionTitleColor: theme.colors.primary,
+          selectedDayBackgroundColor: theme.colors.primary,
+          todayTextColor: theme.colors.primary,
+          dayTextColor: theme.colors.onSurface,
+          textDisabledColor: theme.colors.surfaceDisabled,
+          dotColor: theme.colors.secondary,
+          selectedDotColor: theme.colors.onPrimary
+        }}
       />
 
       <Text style={styles.dateTitle}>
         {selectedDate ? `Stages on ${selectedDate}` : 'Select a date'}
       </Text>
 
-      {/* Stages on Selected Date */}
       {stagesOnDate.length > 0 ? (
         <FlatList
           data={stagesOnDate}
@@ -91,9 +107,13 @@ export default function CalendarView() {
                 <Text style={styles.stageBatch}>Batch: {item.batchName}</Text>
               </View>
               <Button
-                title="View Batch"
+                mode="text"
                 onPress={() => router.push(`/batches/${item.batchId}`)}
-              />
+                textColor={theme.colors.surface}
+                buttonColor={theme.colors.primary}
+              >
+                View Batch
+              </Button>
             </View>
           )}
         />
@@ -106,37 +126,45 @@ export default function CalendarView() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#fff'
-  },
-  dateTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginVertical: 16
-  },
-  stageItem: {
-    padding: 16,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    marginBottom: 8,
-    elevation: 1
-  },
-  stageDetails: {
-    flex: 1,
-    marginRight: 8
-  },
-  stageDescription: {
-    fontSize: 16
-  },
-  stageBatch: {
-    fontSize: 14,
-    color: '#666'
-  },
-  noStages: {
-    fontSize: 16,
-    color: '#999'
-  }
-})
+const getStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: theme.colors.background
+    },
+    dateTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginVertical: 16,
+      color: theme.colors.onBackground
+    },
+    stageItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.roundness,
+      marginBottom: 8,
+      elevation: 1
+    },
+    stageDetails: {
+      flex: 1,
+      marginRight: 8
+    },
+    stageDescription: {
+      fontSize: 16,
+      color: theme.colors.onSurface
+    },
+    stageBatch: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant || '#666',
+      marginTop: 4
+    },
+    noStages: {
+      fontSize: 16,
+      color: theme.colors.onBackground,
+      textAlign: 'center',
+      marginTop: 16
+    }
+  })

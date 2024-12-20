@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native'
 
-export default function SettingsView() {
+export default function ToolsView() {
   return (
     <View
       style={{
@@ -9,7 +9,7 @@ export default function SettingsView() {
         alignItems: 'center'
       }}
     >
-      <Text>Settings</Text>
+      <Text>Helpful tools</Text>
     </View>
   )
 }

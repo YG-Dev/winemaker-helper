@@ -1,19 +1,16 @@
 import { BatchStage } from '@/constants/types'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState, useEffect } from 'react'
+import { View, FlatList, Modal, StyleSheet, Alert } from 'react-native'
 import {
-  Text,
-  View,
-  StyleSheet,
-  Alert,
-  FlatList,
+  useTheme,
   Button,
-  Modal,
   TextInput,
-  TouchableOpacity,
+  Text,
   ActivityIndicator
-} from 'react-native'
+} from 'react-native-paper'
 import useBatches from '@/hooks/useBatches'
+import { MD3Theme } from 'react-native-paper/lib/typescript/types'
 
 export default function BatchDetailsView() {
   const { id } = useLocalSearchParams()
@@ -24,6 +21,9 @@ export default function BatchDetailsView() {
   const [isModalVisible, setModalVisible] = useState(false)
   const [stageDescription, setStageDescription] = useState('')
   const [stageDate, setStageDate] = useState('')
+
+  const theme = useTheme()
+  const styles = getStyles(theme)
 
   useEffect(() => {
     if (batches && !batch) {
@@ -73,7 +73,11 @@ export default function BatchDetailsView() {
   if (isLoading || !batch) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator
+          size="large"
+          color={theme.colors.primary}
+          style={{ flex: 1 }}
+        />
       </View>
     )
   }
@@ -87,10 +91,13 @@ export default function BatchDetailsView() {
         Status: {batch.isFinished ? 'Finished' : 'In Progress'}
       </Text>
       <Button
-        title="Delete Batch"
+        mode="text"
         onPress={handleRemoveBatch}
-        color="#ff5c5c"
-      />
+        textColor={theme.colors.surface}
+        buttonColor={theme.colors.error}
+      >
+        Delete Batch
+      </Button>
 
       {/* Display stages in a list */}
       <Text style={styles.subTitle}>Stages:</Text>
@@ -102,42 +109,65 @@ export default function BatchDetailsView() {
             <View style={styles.stageItem}>
               <Text style={styles.stageDescription}>{item.description}</Text>
               <Text style={styles.stageDate}>Date: {item.date}</Text>
-              <TouchableOpacity
-                style={styles.removeStageButton}
+              <Button
+                mode="text"
                 onPress={() => handleRemoveStage(item.id)}
+                textColor={theme.colors.surface}
+                buttonColor={theme.colors.error}
               >
-                <Text style={styles.removeStageText}>Remove</Text>
-              </TouchableOpacity>
+                Remove
+              </Button>
             </View>
           )}
         />
       ) : (
-        <Text>No stages added yet.</Text>
+        <Text style={styles.emptyText}>No stages added yet.</Text>
       )}
 
-      {/* add stage */}
-      <Button title="Add Stage" onPress={toggleModal} />
+      <Button
+        mode="text"
+        onPress={toggleModal}
+        textColor={theme.colors.surface}
+        buttonColor={theme.colors.primary}
+      >
+        New Stage
+      </Button>
 
-      {/* adding stage button */}
+      {/* Add Stage Modal */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Stage</Text>
             <TextInput
+              mode="outlined"
               style={styles.input}
-              placeholder="Stage Description"
+              label="Stage Description"
               value={stageDescription}
               onChangeText={setStageDescription}
             />
             <TextInput
+              mode="outlined"
               style={styles.input}
-              placeholder="Stage Date (YYYY-MM-DD)"
+              label="Stage Date (YYYY-MM-DD)"
               value={stageDate}
               onChangeText={setStageDate}
             />
             <View style={styles.buttonContainer}>
-              <Button title="Cancel" onPress={toggleModal} color="#ff5c5c" />
-              <Button title="Add Stage" onPress={handleAddStage} />
+              <Button
+                mode="text"
+                onPress={toggleModal}
+                textColor={theme.colors.error}
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="text"
+                onPress={handleAddStage}
+                textColor={theme.colors.surface}
+                buttonColor={theme.colors.primary}
+              >
+                Add Stage
+              </Button>
             </View>
           </View>
         </View>
@@ -146,82 +176,90 @@ export default function BatchDetailsView() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16
-  },
-  detail: {
-    fontSize: 16,
-    marginBottom: 8
-  },
-  subTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8
-  },
-  stageItem: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: '#f9f9f9'
-  },
-  stageDescription: {
-    fontSize: 16
-  },
-  stageDate: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)'
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center'
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 8,
-    marginBottom: 16
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 16
-  },
-  removeStageButton: {
-    marginTop: 8,
-    padding: 4,
-    backgroundColor: '#ff5c5c',
-    borderRadius: 4
-  },
-  removeStageText: {
-    color: '#fff',
-    textAlign: 'center'
-  }
-})
+const getStyles = (theme: MD3Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: theme.colors.background
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      color: theme.colors.primary
+    },
+    detail: {
+      fontSize: 16,
+      marginBottom: 8,
+      color: theme.colors.onBackground
+    },
+    subTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginTop: 16,
+      marginBottom: 8,
+      color: theme.colors.onBackground
+    },
+    stageItem: {
+      padding: 12,
+      borderRadius: theme.roundness,
+      backgroundColor: theme.colors.surface,
+      marginBottom: 8,
+      elevation: 1
+    },
+    stageDescription: {
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      marginBottom: 4
+    },
+    stageDate: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant || '#666',
+      marginBottom: 4
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      backgroundColor: theme.colors.backdrop
+    },
+    modalContent: {
+      margin: 16,
+      padding: 16,
+      borderRadius: theme.roundness,
+      backgroundColor: theme.colors.surface,
+      elevation: 3
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: theme.colors.onSurface,
+      marginBottom: 16
+    },
+    input: {
+      marginBottom: 16,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.roundness
+    },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 16
+    },
+    removeStageButton: {
+      marginTop: 8,
+      padding: 6,
+      borderRadius: theme.roundness,
+      backgroundColor: theme.colors.error
+    },
+    removeStageText: {
+      color: theme.colors.onError,
+      textAlign: 'center'
+    },
+    emptyText: {
+      marginTop: 16,
+      textAlign: 'center',
+      color: theme.colors.onBackground
+    }
+  })

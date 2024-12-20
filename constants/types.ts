@@ -1,8 +1,3 @@
-export type ShoppingItem = {
-  id: string
-  text: string
-}
-
 export type BatchStage = {
   id: number
   description: string
