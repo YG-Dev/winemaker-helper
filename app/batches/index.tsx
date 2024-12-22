@@ -14,10 +14,11 @@ import {
   useTheme,
   MD3Theme
 } from 'react-native-paper'
+import PageLoader from '@/components/page-loader'
 
 export default function BatchesView() {
   const router = useRouter()
-  const { batches, setBatches, getBatchById } = useBatches()
+  const { batches, isLoading, setBatches, getBatchById } = useBatches()
   const [isModalVisible, setModalVisible] = useState(false)
   const [batchName, setBatchName] = useState('')
   const [batchQuantity, setBatchQuantity] = useState('')
@@ -41,6 +42,10 @@ export default function BatchesView() {
   }
 
   getBatchById('')
+
+  if (isLoading) {
+    return <PageLoader />
+  }
 
   return (
     <PaperProvider theme={theme}>

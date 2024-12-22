@@ -2,15 +2,10 @@ import { Batch, BatchStage } from '@/constants/types'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState, useEffect } from 'react'
 import { View, FlatList, Modal, StyleSheet, Alert } from 'react-native'
-import {
-  useTheme,
-  Button,
-  TextInput,
-  Text,
-  ActivityIndicator
-} from 'react-native-paper'
+import { useTheme, Button, TextInput, Text } from 'react-native-paper'
 import useBatches from '@/hooks/useBatches'
 import { MD3Theme } from 'react-native-paper/lib/typescript/types'
+import PageLoader from '@/components/page-loader'
 
 export default function BatchDetailsView() {
   const { id }: { id: string } = useLocalSearchParams()
@@ -29,7 +24,7 @@ export default function BatchDetailsView() {
     if (batches) {
       setBatch(getBatchById(id))
     }
-  }, [batches, id])
+  }, [batches, id, getBatchById])
 
   const toggleModal = () => setModalVisible(!isModalVisible)
 
@@ -71,15 +66,7 @@ export default function BatchDetailsView() {
   }
 
   if (isLoading || !batch) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={theme.colors.primary}
-          style={{ flex: 1 }}
-        />
-      </View>
-    )
+    return <PageLoader />
   }
 
   return (

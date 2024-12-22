@@ -1,11 +1,11 @@
-import { BATCHES_KEY } from '@/constants/storage-keys'
-import { Batch, BatchStage } from '@/constants/types'
-import { useCallback, useEffect, useState } from 'react'
+import { BatchStage } from '@/constants/types'
+import { useEffect, useState } from 'react'
 import { View, StyleSheet, FlatList } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { router, useFocusEffect } from 'expo-router'
+import { router } from 'expo-router'
 import { Calendar } from 'react-native-calendars'
 import { MD3Theme, useTheme, Text, Button } from 'react-native-paper'
+import useBatches from '@/hooks/useBatches'
+import PageLoader from '@/components/page-loader'
 
 type CalendarStage = BatchStage & {
   batchName: string
@@ -13,32 +13,15 @@ type CalendarStage = BatchStage & {
 }
 
 export default function CalendarView() {
-  const [batches, setBatches] = useState<Batch[]>([])
+  const { batches, isLoading } = useBatches()
   const [selectedDate, setSelectedDate] = useState('')
   const [stagesOnDate, setStagesOnDate] = useState<CalendarStage[]>([])
 
   const theme = useTheme()
   const styles = getStyles(theme)
 
-  const loadBatches = async () => {
-    try {
-      const storedBatches = await AsyncStorage.getItem(BATCHES_KEY)
-      if (storedBatches) {
-        setBatches(JSON.parse(storedBatches))
-      }
-    } catch (error) {
-      console.error('Failed to load on calendar screen:', error)
-    }
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      loadBatches()
-    }, [])
-  )
-
   useEffect(() => {
-    if (selectedDate) {
+    if (selectedDate && batches) {
       const stages = batches
         .flatMap((batch) =>
           batch.stages.map((stage) => ({
@@ -66,7 +49,7 @@ export default function CalendarView() {
             marked: true,
             selectedColor: theme.colors.primary
           },
-          ...batches.reduce(
+          ...batches?.reduce(
             (acc, batch) => {
               batch.stages.forEach((stage) => {
                 acc[stage.date] = {
@@ -95,6 +78,8 @@ export default function CalendarView() {
       <Text style={styles.dateTitle}>
         {selectedDate ? `Stages on ${selectedDate}` : 'Select a date'}
       </Text>
+
+      {isLoading && <PageLoader />}
 
       {stagesOnDate.length > 0 ? (
         <FlatList
