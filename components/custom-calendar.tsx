@@ -2,7 +2,7 @@ import { FC } from 'react'
 import { Calendar, CalendarProps } from 'react-native-calendars'
 import { useTheme } from 'react-native-paper'
 
-const CustomCalendar: FC<CalendarProps> = ({ ...props }) => {
+const CustomCalendar: FC<CalendarProps> = ({ theme: userTheme, ...props }) => {
   const theme = useTheme()
 
   const defaultTheme = {
@@ -17,7 +17,7 @@ const CustomCalendar: FC<CalendarProps> = ({ ...props }) => {
     selectedDotColor: theme.colors.onPrimary
   }
 
-  return <Calendar {...props} theme={{ defaultTheme, ...props?.theme }} />
+  return <Calendar {...props} theme={{ ...defaultTheme, ...userTheme }} />
 }
 
 export default CustomCalendar

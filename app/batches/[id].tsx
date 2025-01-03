@@ -7,6 +7,7 @@ import useBatches from '@/hooks/useBatches'
 import { MD3Theme } from 'react-native-paper/lib/typescript/types'
 import PageLoader from '@/components/page-loader'
 import CustomCalendar from '@/components/custom-calendar'
+import CustomTextInput from '@/components/custom-text-input'
 
 export default function BatchDetailsView() {
   const { id }: { id: string } = useLocalSearchParams()
@@ -135,9 +136,7 @@ export default function BatchDetailsView() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add New Stage</Text>
-            <TextInput
-              mode="outlined"
-              style={styles.input}
+            <CustomTextInput
               label="Stage Description"
               value={stageDescription}
               onChangeText={setStageDescription}
@@ -252,11 +251,6 @@ const getStyles = (theme: MD3Theme) =>
       textAlign: 'center',
       color: theme.colors.onSurface,
       marginBottom: 16
-    },
-    input: {
-      marginBottom: 16,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.roundness
     },
     buttonContainer: {
       flexDirection: 'row',

@@ -15,6 +15,7 @@ import {
   MD3Theme
 } from 'react-native-paper'
 import PageLoader from '@/components/page-loader'
+import CustomTextInput from '@/components/custom-text-input'
 
 export default function BatchesView() {
   const router = useRouter()
@@ -89,21 +90,17 @@ export default function BatchesView() {
                 Add New Batch
               </Text>
 
-              <TextInput
-                mode="outlined"
+              <CustomTextInput
                 label="Batch Name"
                 value={batchName}
                 onChangeText={setBatchName}
-                style={styles.input}
               />
 
-              <TextInput
-                mode="outlined"
+              <CustomTextInput
                 label="Batch Quantity (L)"
                 value={batchQuantity}
                 onChangeText={setBatchQuantity}
                 keyboardType="numeric"
-                style={styles.input}
               />
 
               <View style={styles.buttonContainer}>
@@ -173,11 +170,6 @@ const getStyles = (theme: MD3Theme) =>
       color: theme.colors.onSurface,
       fontSize: 18,
       fontWeight: 'bold'
-    },
-    input: {
-      marginBottom: 16,
-      backgroundColor: theme.colors.surface,
-      borderRadius: theme.roundness
     },
     buttonContainer: {
       flexDirection: 'row',
