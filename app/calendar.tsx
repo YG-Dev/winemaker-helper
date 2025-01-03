@@ -6,6 +6,7 @@ import { Calendar } from 'react-native-calendars'
 import { MD3Theme, useTheme, Text, Button } from 'react-native-paper'
 import useBatches from '@/hooks/useBatches'
 import PageLoader from '@/components/page-loader'
+import CustomCalendar from '@/components/custom-calendar'
 
 type CalendarStage = BatchStage & {
   batchName: string
@@ -39,7 +40,7 @@ export default function CalendarView() {
 
   return (
     <View style={styles.container}>
-      <Calendar
+      <CustomCalendar
         onDayPress={(day: { dateString: string }) =>
           setSelectedDate(day.dateString)
         }

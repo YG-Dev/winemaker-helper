@@ -6,6 +6,7 @@ import { useTheme, Button, TextInput, Text } from 'react-native-paper'
 import useBatches from '@/hooks/useBatches'
 import { MD3Theme } from 'react-native-paper/lib/typescript/types'
 import PageLoader from '@/components/page-loader'
+import CustomCalendar from '@/components/custom-calendar'
 
 export default function BatchDetailsView() {
   const { id }: { id: string } = useLocalSearchParams()
@@ -16,6 +17,7 @@ export default function BatchDetailsView() {
   const [isModalVisible, setModalVisible] = useState(false)
   const [stageDescription, setStageDescription] = useState('')
   const [stageDate, setStageDate] = useState('')
+  const [isCalendarVisible, setCalendarVisible] = useState(false)
 
   const theme = useTheme()
   const styles = getStyles(theme)
@@ -26,7 +28,10 @@ export default function BatchDetailsView() {
     }
   }, [batches, id, getBatchById])
 
-  const toggleModal = () => setModalVisible(!isModalVisible)
+  const toggleModal = () => {
+    setStageDate('')
+    setModalVisible(!isModalVisible)
+  }
 
   const handleAddStage = () => {
     if (!stageDescription.trim() || !stageDate.trim()) {
@@ -63,6 +68,11 @@ export default function BatchDetailsView() {
     deleteBatch(id)
     Alert.alert('Batch Deleted', 'The batch has been deleted.')
     router.push('/batches')
+  }
+
+  const handleDateSelect = (day: any) => {
+    setStageDate(day.dateString)
+    setCalendarVisible(false)
   }
 
   if (isLoading || !batch) {
@@ -132,13 +142,15 @@ export default function BatchDetailsView() {
               value={stageDescription}
               onChangeText={setStageDescription}
             />
-            <TextInput
-              mode="outlined"
-              style={styles.input}
-              label="Stage Date (YYYY-MM-DD)"
-              value={stageDate}
-              onChangeText={setStageDate}
-            />
+            <Button
+              mode="text"
+              onPress={() => setCalendarVisible(true)}
+              textColor={theme.colors.surface}
+              buttonColor={theme.colors.primary}
+              style={styles.calendarButton}
+            >
+              {stageDate ? `Selected Date: ${stageDate}` : 'Pick a Date'}
+            </Button>
             <View style={styles.buttonContainer}>
               <Button
                 mode="text"
@@ -156,6 +168,23 @@ export default function BatchDetailsView() {
                 Add Stage
               </Button>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Calendar Picker Modal */}
+      <Modal visible={isCalendarVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select a Date</Text>
+            <CustomCalendar onDayPress={handleDateSelect} />
+            <Button
+              mode="text"
+              onPress={() => setCalendarVisible(false)}
+              textColor={theme.colors.error}
+            >
+              Close
+            </Button>
           </View>
         </View>
       </Modal>
@@ -248,5 +277,8 @@ const getStyles = (theme: MD3Theme) =>
       marginTop: 16,
       textAlign: 'center',
       color: theme.colors.onBackground
+    },
+    calendarButton: {
+      marginBottom: 16
     }
   })
