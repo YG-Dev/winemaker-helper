@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { FlatList, StyleSheet, Modal, View } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { createBatch } from '@/utils/batch-helpers'
 import useBatches from '@/hooks/useBatches'
 import { Batch } from '@/constants/types'
 import {
-  Button,
   Card,
   Text,
   FAB,
@@ -14,37 +12,20 @@ import {
   MD3Theme
 } from 'react-native-paper'
 import PageLoader from '@/components/page-loader'
-import CustomTextInput from '@/components/custom-text-input'
+import BatchEditorModal from '@/components/app/batches/batch-editor-modal'
 
 export default function BatchesView() {
   const router = useRouter()
   const { batches, isLoading, setBatches, getBatchById } = useBatches()
   const [isModalVisible, setModalVisible] = useState(false)
-  const [batchName, setBatchName] = useState('')
-  const [batchQuantity, setBatchQuantity] = useState('')
-  const [batchDescription, setBatchDescription] = useState('')
+
   const theme = useTheme()
   const styles = getStyles(theme)
 
   const toggleModal = () => setModalVisible(!isModalVisible)
 
-  const handleAddBatch = () => {
-    if (!batchName.trim() || !batchQuantity.trim()) {
-      alert('Please provide a valid name and quantity for the batch.')
-      return
-    }
-
-    const newBatch = createBatch(
-      batchName.trim(),
-      parseFloat(batchQuantity),
-      batchDescription.trim()
-    )
-
+  const onAddBatchSave = (newBatch: Batch) => {
     setBatches([...(batches as Batch[]), newBatch])
-    setBatchName('')
-    setBatchQuantity('')
-    setBatchDescription('')
-    toggleModal()
   }
 
   if (isLoading) {
@@ -86,48 +67,12 @@ export default function BatchesView() {
           onPress={toggleModal}
         />
 
-        <Modal visible={isModalVisible} animationType="slide" transparent>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text variant="headlineSmall" style={styles.modalTitle}>
-                Add New Batch
-              </Text>
-
-              <CustomTextInput
-                label="Batch Name"
-                value={batchName}
-                onChangeText={setBatchName}
-              />
-
-              <CustomTextInput
-                label="Batch Quantity (L)"
-                value={batchQuantity}
-                onChangeText={setBatchQuantity}
-                keyboardType="numeric"
-              />
-
-              <CustomTextInput
-                label="Batch Description (Optional)"
-                value={batchDescription}
-                onChangeText={setBatchDescription}
-                multiline
-              />
-
-              <View style={styles.buttonContainer}>
-                <Button
-                  mode="text"
-                  onPress={toggleModal}
-                  textColor={theme.colors.error}
-                >
-                  Cancel
-                </Button>
-                <Button mode="contained" onPress={handleAddBatch}>
-                  Add Batch
-                </Button>
-              </View>
-            </View>
-          </View>
-        </Modal>
+        <BatchEditorModal
+          isModalVisible={isModalVisible}
+          toggleModal={toggleModal}
+          onSave={onAddBatchSave}
+          mode={'create'}
+        />
       </View>
     </PaperProvider>
   )
@@ -161,28 +106,5 @@ const getStyles = (theme: MD3Theme) =>
       bottom: 16,
       right: 16,
       backgroundColor: theme.colors.secondary
-    },
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      backgroundColor: theme.colors.backdrop
-    },
-    modalContent: {
-      margin: 16,
-      padding: 16,
-      borderRadius: theme.roundness,
-      backgroundColor: theme.colors.surface,
-      elevation: 3
-    },
-    modalTitle: {
-      marginBottom: 16,
-      textAlign: 'center',
-      color: theme.colors.onSurface,
-      fontSize: 18,
-      fontWeight: 'bold'
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between'
     }
   })

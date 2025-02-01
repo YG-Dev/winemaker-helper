@@ -7,6 +7,7 @@ import useBatches from '@/hooks/useBatches'
 import { MD3Theme } from 'react-native-paper/lib/typescript/types'
 import PageLoader from '@/components/page-loader'
 import AddStageModal from '@/components/app/batches/add-stage-modal'
+import BatchEditorModal from '@/components/app/batches/batch-editor-modal'
 
 export default function BatchDetailsView() {
   const { id }: { id: string } = useLocalSearchParams()
@@ -14,7 +15,8 @@ export default function BatchDetailsView() {
     useBatches()
 
   const [batch, setBatch] = useState<Batch | null>()
-  const [isModalVisible, setModalVisible] = useState(false)
+  const [isEditModalVisible, setEditModalVisible] = useState(false)
+  const [isStageModalVisible, setStageModalVisible] = useState(false)
 
   const theme = useTheme()
   const styles = getStyles(theme)
@@ -25,9 +27,8 @@ export default function BatchDetailsView() {
     }
   }, [batches, id, getBatchById])
 
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible)
-  }
+  const toggleStageModal = () => setStageModalVisible(!isStageModalVisible)
+  const toggleEditModal = () => setEditModalVisible(!isEditModalVisible)
 
   const handleRemoveStage = (stageId: number) => {
     if (batch) {
@@ -44,7 +45,7 @@ export default function BatchDetailsView() {
     router.push('/batches')
   }
 
-  const handleAddStageSave = (updatedBatch: Batch) => {
+  const handleUpdateBatch = (updatedBatch: Batch) => {
     setBatch(updatedBatch)
     updateBatch(updatedBatch)
   }
@@ -58,20 +59,33 @@ export default function BatchDetailsView() {
       <Text style={styles.title}>{batch.name}</Text>
       <Text style={styles.detail}>Quantity: {batch.quantity} L</Text>
       <Text style={styles.detail}>Created At: {batch.createdAt}</Text>
-      <Text style={styles.detail}>
+      {/* <Text style={styles.detail}>
         Status: {batch.isFinished ? 'Finished' : 'In Progress'}
-      </Text>
+      </Text> */}
       {!!batch.description && (
         <Text style={styles.detail}>{batch.description}</Text>
       )}
-      <Button
-        mode="text"
-        onPress={handleRemoveBatch}
-        textColor={theme.colors.surface}
-        buttonColor={theme.colors.error}
-      >
-        Delete Batch
-      </Button>
+
+      <View style={styles.buttonGroup}>
+        <Button
+          mode="text"
+          onPress={toggleEditModal}
+          textColor={theme.colors.surface}
+          buttonColor={theme.colors.primary}
+          style={{ flex: 2 }}
+        >
+          Edit details
+        </Button>
+        <Button
+          mode="text"
+          onPress={handleRemoveBatch}
+          textColor={theme.colors.surface}
+          buttonColor={theme.colors.error}
+          style={{ flex: 1 }}
+        >
+          Delete Batch
+        </Button>
+      </View>
 
       {/* Display stages in a list */}
       <Text style={styles.subTitle}>Stages:</Text>
@@ -100,7 +114,7 @@ export default function BatchDetailsView() {
 
       <Button
         mode="text"
-        onPress={toggleModal}
+        onPress={toggleStageModal}
         textColor={theme.colors.surface}
         buttonColor={theme.colors.primary}
       >
@@ -108,10 +122,17 @@ export default function BatchDetailsView() {
       </Button>
 
       <AddStageModal
-        isModalVisible={isModalVisible}
-        toggleModal={toggleModal}
+        isModalVisible={isStageModalVisible}
+        toggleModal={toggleStageModal}
         batch={batch}
-        onSave={handleAddStageSave}
+        onSave={handleUpdateBatch}
+      />
+      <BatchEditorModal
+        isModalVisible={isEditModalVisible}
+        toggleModal={toggleEditModal}
+        onSave={handleUpdateBatch}
+        mode={'edit'}
+        batch={batch}
       />
     </View>
   )
@@ -173,5 +194,10 @@ const getStyles = (theme: MD3Theme) =>
       marginTop: 16,
       textAlign: 'center',
       color: theme.colors.onBackground
+    },
+    buttonGroup: {
+      justifyContent: 'space-between',
+      flexDirection: 'row',
+      gap: 16
     }
   })
