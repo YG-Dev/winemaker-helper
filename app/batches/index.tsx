@@ -8,7 +8,6 @@ import {
   Button,
   Card,
   Text,
-  TextInput,
   FAB,
   Provider as PaperProvider,
   useTheme,
@@ -23,6 +22,7 @@ export default function BatchesView() {
   const [isModalVisible, setModalVisible] = useState(false)
   const [batchName, setBatchName] = useState('')
   const [batchQuantity, setBatchQuantity] = useState('')
+  const [batchDescription, setBatchDescription] = useState('')
   const theme = useTheme()
   const styles = getStyles(theme)
 
@@ -34,15 +34,18 @@ export default function BatchesView() {
       return
     }
 
-    const newBatch = createBatch(batchName.trim(), parseFloat(batchQuantity))
+    const newBatch = createBatch(
+      batchName.trim(),
+      parseFloat(batchQuantity),
+      batchDescription.trim()
+    )
 
     setBatches([...(batches as Batch[]), newBatch])
     setBatchName('')
     setBatchQuantity('')
+    setBatchDescription('')
     toggleModal()
   }
-
-  getBatchById('')
 
   if (isLoading) {
     return <PageLoader />
@@ -101,6 +104,13 @@ export default function BatchesView() {
                 value={batchQuantity}
                 onChangeText={setBatchQuantity}
                 keyboardType="numeric"
+              />
+
+              <CustomTextInput
+                label="Batch Description (Optional)"
+                value={batchDescription}
+                onChangeText={setBatchDescription}
+                multiline
               />
 
               <View style={styles.buttonContainer}>

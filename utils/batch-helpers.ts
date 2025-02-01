@@ -1,6 +1,10 @@
 import { Batch, BatchStage } from '@/constants/types'
 
-export const createBatch = (name: string, quantity: number): Batch => {
+export const createBatch = (
+  name: string,
+  quantity: number,
+  description: string = ''
+): Batch => {
   const creationDate = new Date()
 
   return {
@@ -9,9 +13,22 @@ export const createBatch = (name: string, quantity: number): Batch => {
     quantity,
     createdAt: creationDate.toISOString().substring(0, 10),
     isFinished: false,
-    stages: []
+    stages: [],
+    description
   }
 }
+
+export const editBatch = (
+  batch: Batch,
+  name: string,
+  quantity: number,
+  description: string
+): Batch => ({
+  ...batch,
+  name,
+  quantity,
+  description
+})
 
 export const createBatchStage = (
   description: string,

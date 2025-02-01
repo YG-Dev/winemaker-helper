@@ -11,4 +11,5 @@ export type Batch = {
   createdAt: string
   isFinished: boolean
   stages: BatchStage[]
+  description: string
 }
