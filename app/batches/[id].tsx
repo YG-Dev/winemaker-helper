@@ -2,12 +2,13 @@ import { Batch } from '@/constants/types'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState, useEffect } from 'react'
 import { View, FlatList, StyleSheet, Alert } from 'react-native'
-import { useTheme, Button, Text } from 'react-native-paper'
+import { useTheme, Button, Text, FAB } from 'react-native-paper'
 import useBatches from '@/hooks/useBatches'
 import { MD3Theme } from 'react-native-paper/lib/typescript/types'
 import PageLoader from '@/components/page-loader'
 import AddStageModal from '@/components/app/batches/add-stage-modal'
 import BatchEditorModal from '@/components/app/batches/batch-editor-modal'
+import CustomConfirmationDialog from '@/components/custom-confirmation-dialog'
 
 export default function BatchDetailsView() {
   const { id }: { id: string } = useLocalSearchParams()
@@ -17,6 +18,7 @@ export default function BatchDetailsView() {
   const [batch, setBatch] = useState<Batch | null>()
   const [isEditModalVisible, setEditModalVisible] = useState(false)
   const [isStageModalVisible, setStageModalVisible] = useState(false)
+  const [isRemoveDialogVisible, setRemoveDialogVisible] = useState(false)
 
   const theme = useTheme()
   const styles = getStyles(theme)
@@ -29,6 +31,8 @@ export default function BatchDetailsView() {
 
   const toggleStageModal = () => setStageModalVisible(!isStageModalVisible)
   const toggleEditModal = () => setEditModalVisible(!isEditModalVisible)
+  const toggleRemoveDialog = () =>
+    setRemoveDialogVisible(!isRemoveDialogVisible)
 
   const handleRemoveStage = (stageId: number) => {
     if (batch) {
@@ -72,18 +76,18 @@ export default function BatchDetailsView() {
           onPress={toggleEditModal}
           textColor={theme.colors.surface}
           buttonColor={theme.colors.primary}
-          style={{ flex: 2 }}
+          style={{ flex: 3 }}
         >
           Edit details
         </Button>
         <Button
           mode="text"
-          onPress={handleRemoveBatch}
+          onPress={toggleRemoveDialog}
           textColor={theme.colors.surface}
           buttonColor={theme.colors.error}
           style={{ flex: 1 }}
         >
-          Delete Batch
+          Remove Batch
         </Button>
       </View>
 
@@ -95,16 +99,18 @@ export default function BatchDetailsView() {
           keyExtractor={(stage) => stage.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.stageItem}>
-              <Text style={styles.stageDescription}>{item.description}</Text>
-              <Text style={styles.stageDate}>Date: {item.date}</Text>
-              <Button
-                mode="text"
-                onPress={() => handleRemoveStage(item.id)}
-                textColor={theme.colors.surface}
-                buttonColor={theme.colors.error}
-              >
-                Remove
-              </Button>
+              <View style={{ flex: 6 }}>
+                <Text style={styles.stageDescription}>{item.description}</Text>
+                <Text style={styles.stageDate}>Date: {item.date}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <FAB
+                  icon="trash-can"
+                  onPress={() => handleRemoveStage(item.id)}
+                  style={styles.fab}
+                  color={theme.colors.surface}
+                />
+              </View>
             </View>
           )}
         />
@@ -133,6 +139,13 @@ export default function BatchDetailsView() {
         onSave={handleUpdateBatch}
         mode={'edit'}
         batch={batch}
+      />
+      <CustomConfirmationDialog
+        title="Warning"
+        description="Do you really want to remove this batch and all of its stages? This action is irreversible"
+        visible={isRemoveDialogVisible}
+        toggle={toggleRemoveDialog}
+        onCofirm={handleRemoveBatch}
       />
     </View>
   )
@@ -164,7 +177,10 @@ const getStyles = (theme: MD3Theme) =>
       color: theme.colors.onBackground
     },
     stageItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       padding: 12,
+      paddingBottom: 16,
       borderRadius: theme.roundness,
       backgroundColor: theme.colors.surface,
       marginBottom: 8,
@@ -180,10 +196,10 @@ const getStyles = (theme: MD3Theme) =>
       color: theme.colors.onSurfaceVariant || '#666',
       marginBottom: 4
     },
-    removeStageButton: {
-      marginTop: 8,
-      padding: 6,
-      borderRadius: theme.roundness,
+    fab: {
+      position: 'absolute',
+      right: 0,
+      top: 0,
       backgroundColor: theme.colors.error
     },
     removeStageText: {
@@ -191,7 +207,7 @@ const getStyles = (theme: MD3Theme) =>
       textAlign: 'center'
     },
     emptyText: {
-      marginTop: 16,
+      margin: 16,
       textAlign: 'center',
       color: theme.colors.onBackground
     },
