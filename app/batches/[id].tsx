@@ -9,11 +9,13 @@ import PageLoader from '@/components/page-loader'
 import AddStageModal from '@/components/app/batches/add-stage-modal'
 import BatchEditorModal from '@/components/app/batches/batch-editor-modal'
 import CustomConfirmationDialog from '@/components/custom-confirmation-dialog'
+import usePreferredVolumeUnits from '@/hooks/usePreferredVolumeUnit'
 
 export default function BatchDetailsView() {
   const { id }: { id: string } = useLocalSearchParams()
   const { batches, getBatchById, updateBatch, deleteBatch, isLoading } =
     useBatches()
+  const { preferredVolumeUnit } = usePreferredVolumeUnits()
 
   const [batch, setBatch] = useState<Batch | null>()
   const [isEditModalVisible, setEditModalVisible] = useState(false)
@@ -61,7 +63,9 @@ export default function BatchDetailsView() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{batch.name}</Text>
-      <Text style={styles.detail}>Quantity: {batch.quantity} L</Text>
+      <Text style={styles.detail}>
+        Quantity: {batch.quantity} {preferredVolumeUnit}
+      </Text>
       <Text style={styles.detail}>Created At: {batch.createdAt}</Text>
       {/* <Text style={styles.detail}>
         Status: {batch.isFinished ? 'Finished' : 'In Progress'}

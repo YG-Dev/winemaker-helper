@@ -13,10 +13,12 @@ import {
 } from 'react-native-paper'
 import PageLoader from '@/components/page-loader'
 import BatchEditorModal from '@/components/app/batches/batch-editor-modal'
+import usePreferredVolumeUnits from '@/hooks/usePreferredVolumeUnit'
 
 export default function BatchesView() {
   const router = useRouter()
-  const { batches, isLoading, setBatches, getBatchById } = useBatches()
+  const { batches, isLoading, setBatches } = useBatches()
+  const { preferredVolumeUnit } = usePreferredVolumeUnits()
   const [isModalVisible, setModalVisible] = useState(false)
 
   const theme = useTheme()
@@ -45,7 +47,7 @@ export default function BatchesView() {
             >
               <Card.Title
                 title={item.name}
-                subtitle={`Quantity: ${item.quantity} L`}
+                subtitle={`Quantity: ${item.quantity} ${preferredVolumeUnit}`}
               />
               <Card.Content>
                 <Text variant="bodySmall" style={styles.dateText}>

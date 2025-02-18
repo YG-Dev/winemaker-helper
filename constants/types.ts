@@ -13,3 +13,5 @@ export type Batch = {
   stages: BatchStage[]
   description: string
 }
+
+export type VolumeUnit = 'L' | 'Gal'

@@ -48,7 +48,7 @@ export default function HomeLayout() {
           }}
         />
         <Tabs.Screen
-          name="tools"
+          name="tools/index"
           options={{
             title: 'Tools',
             tabBarIcon: ({ color }) => (
@@ -60,6 +60,10 @@ export default function HomeLayout() {
         <Tabs.Screen
           name="batches/[id]"
           options={{ title: 'Batch Details', href: null }}
+        />
+        <Tabs.Screen
+          name="tools/settings"
+          options={{ title: 'App settings', href: null }}
         />
       </Tabs>
     </PaperProvider>
